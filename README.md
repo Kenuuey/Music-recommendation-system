@@ -14,16 +14,19 @@ Recommendation systems simplify decision-making by guiding users toward relevant
 4. **Matrix factorization** is an advanced collaborative filtering technique. It reduces the large user-item interaction matrix into two smaller matrices that capture **latent factors** (hidden features). These factors represent underlying dimensions, such as genres, themes, or user preferences.
 
 
-The goal is to develop a music recommendation system using various approaches:Top 250 Tracks (Non-Personalized Approach):Recommend the 250 most popular tracks globally based on play counts.
-Example: "Top 250 most streamed tracks worldwide."
+The goal is to develop a music recommendation system using various approaches:
+
+1. Top 250 Tracks (Non-Personalized Approach):
+- Recommend the 250 most popular tracks globally based on play counts.
+- Example: "Top 250 most streamed tracks worldwide."
 
 1. Top 100 Tracks by Genre (Non-Personalized Approach):
-2. Identify the 100 most popular tracks in each specified genre: Rock, Rap, Jazz, Electronic, Pop, Blues, Country, Reggae, New Age.
-Example: "Top 100 Pop tracks."
+- Identify the 100 most popular tracks in each specified genre: Rock, Rap, Jazz, Electronic, Pop, Blues, Country, Reggae, New Age.
+- Example: "Top 100 Pop tracks."
 
 2. Collections (Content-Based Approach):
-Create thematic playlists based on lyrical content using the musiXmatch dataset:
-50 songs about love
+- Create thematic playlists based on lyrical content using the musiXmatch dataset:
+- 50 songs about love
 50 songs about war
 50 songs about happiness
 50 songs about loneliness
