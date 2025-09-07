@@ -67,7 +67,43 @@ class ContentBasedRecommender(MusicRecommender):
         track_playcounts.index.name = "rank"
         return track_playcounts
     
-    
-    def recommend_by_classifier(self, keyword, k=50,): #clf):
-        # train classifier on labeled songs and predict probabilities on unlabeled
-        pass
+    def collection_classifier(self, keyword: str, classifier, vectorizer, k: int = 50):
+        """
+        Predict tracks about a keyword using a trained classifier.
+        classifier: sklearn model (e.g., LogisticRegression)
+        vectorizer: TF-IDF or CountVectorizer fitted on lyrics
+        """
+        # Prepare features (BoW -> text)
+        texts = self.lyrics_df["bow"].apply(
+            lambda bow: " "
+            .join(
+                [w for w, c in bow.items() 
+                 for _ in range(c)]
+                 )
+            )
+        X = vectorizer.transform(texts)
+        probs = classifier.predict_proba(X)[:, 1]  # probability of positive class
+
+        scored = pd.DataFrame({
+            "track_id": self.lyrics_df["track_id"],
+            "score": probs
+        })
+
+        merged = (
+            scored.merge(self.interactions_df, on="track_id", how="left")
+            .merge(self.tracks_df, on="track_id", how="left")
+        )
+
+        ranked = (
+            merged.groupby(["track_id", "artist_name", "track_title"])[["play_count", "score"]]
+            .sum()
+            .reset_index()
+        )
+
+        # Re-rank by score * popularity
+        ranked["final_score"] = ranked["score"] * ranked["play_count"]
+        ranked = ranked.sort_values("final_score", ascending=False).head(k)
+
+        ranked.index = ranked.index + 1
+        ranked.index.name = "rank"
+        return ranked
