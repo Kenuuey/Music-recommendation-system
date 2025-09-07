@@ -38,11 +38,13 @@ class NonPersonalizedRecommender(MusicRecommender):
 
         return top_k
 
-    def recommend_by_genre(self, genre, k=100):
+    def recommend_top_k_by_genre(self, genre, k=100):
         """
-        Returns Top k tracks for a given genre.
-        Requires genres_df passed in fit().
-        """
+        Return Top k tracks for a given genre.
+        Output: DataFrame [index, artist_name, track_title, play_count]
+        """ 
+
+        
         if self.genres_df is None:
             raise ValueError("Genres dataset was not provided in fit().")
 
