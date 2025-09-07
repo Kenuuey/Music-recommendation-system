@@ -53,10 +53,10 @@ Example: If many users who listen to Track X also listen to Track Y, recommend T
 - Use: for content-based filtering (lyrics similarity, collections).
 
 3. Tagtraum Genre Annotations:
-- Format: (track_id, majority_genre, minority_genre)
+- Format: `(track_id, majority_genre, minority_genre)`
 - Use: for Top tracks by genre.
 
 4. Mapping between track_id and song_id:
-- Format: (track_id, song_id, artist, title)
+- Format: `(track_id, song_id, artist, title)`
 - Use: links datasets together → helps connect user plays, lyrics, and genres.
 
