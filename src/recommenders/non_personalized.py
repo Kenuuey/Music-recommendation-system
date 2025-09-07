@@ -1,66 +1,49 @@
 from src.recommenders.base import MusicRecommender
+import pandas as pd
 
 class NonPersonalizedRecommender(MusicRecommender):
-    def fit(self, interactions_df, tracks_df, genres_df=None):
-        """
-        interactions_df: DataFrame with [user_id, track_id, play_count]
-        tracks_df:       DataFrame with [track_id, track_title, artist_name]
-        genres_df:       DataFrame with [track_id, genre, (optional minority_genre)]
-        """
-        self.triplets_df = interactions_df
+    def __init__(self, interactions_df: pd.DataFrame, tracks_df: pd.DataFrame, genres_df: pd.DataFrame):
+        self.interactions_df = interactions_df
         self.tracks_df = tracks_df
         self.genres_df = genres_df
 
-        # Precompute global playcounts
-        self.track_playcounts = (
-            self.triplets_df.groupby("track_id")["play_count"]
-            .sum()
-            .reset_index()
+    def top_k_global(self, k: int = 250) -> pd.DataFrame:
+        """Return Top k tracks overall."""
+        track_playcounts = (
+            self.interactions_df.groupby("song_id")["play_count"]
+            .sum().reset_index()
+            .sort_values("play_count", ascending=False)
+            .head(k)
         )
-
-        return self
-
-    def recommend_top_k(self, k=250):
-        """
-        Returns the Top k most popular tracks (global popularity).
-        Output DataFrame: [artist_name, track_title, play_count]
-        """
-        merged = pd.merge(self.track_playcounts, self.tracks_df, on="track_id")
 
         top_k = (
-            merged.sort_values("play_count", ascending=False)
-            .head(k)
-            .reset_index(drop=True)
+            track_playcounts.merge(self.tracks_df, on="song_id", how="left")
+            [["artist_name", "track_title", "play_count"]]
         )
-
-        # Reorder columns
-        top_k = top_k[["artist_name", "track_title", "play_count"]]
-
+        top_k.index = top_k.index + 1
+        top_k.index.name = "rank"
         return top_k
 
-    def recommend_top_k_by_genre(self, genre, k=100):
-        """
-        Return Top k tracks for a given genre.
-        Output: DataFrame [index, artist_name, track_title, play_count]
-        """ 
+    def top_k_by_genre(self, genre: str, k: int = 100) -> pd.DataFrame:
+        """Return Top k tracks for a given genre."""
+        if genre not in self.genres_df["majority_genre"].unique():
+            raise ValueError(f"Genre '{genre}' not found in dataset")
 
-        
-        if self.genres_df is None:
-            raise ValueError("Genres dataset was not provided in fit().")
-
-        # Filter tracks for this genre
-        genre_tracks = self.genres_df[self.genres_df["genre"] == genre]
-
-        # Join with playcounts and metadata
         merged = (
-            pd.merge(genre_tracks, self.track_playcounts, on="track_id")
-            .merge(self.tracks_df, on="track_id")
+            self.interactions_df
+            .merge(self.tracks_df[["track_id", "song_id", "artist_name", "track_title"]], on="song_id", how="left")
+            .merge(self.genres_df[["track_id", "majority_genre"]], on="track_id", how="left")
         )
 
-        top_k = (
-            merged.sort_values("play_count", ascending=False)
+        genre_df = merged[merged["majority_genre"] == genre]
+
+        track_playcounts_genre = (
+            genre_df.groupby(["track_id", "artist_name", "track_title"])["play_count"]
+            .sum().reset_index()
+            .sort_values("play_count", ascending=False)
             .head(k)
-            .reset_index(drop=True)
         )
 
-        return top_k[["artist_name", "track_title", "genre", "play_count"]]
+        track_playcounts_genre.index = track_playcounts_genre.index + 1
+        track_playcounts_genre.index.name = "rank"
+        return track_playcounts_genre
