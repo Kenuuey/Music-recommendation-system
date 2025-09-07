@@ -12,3 +12,31 @@ Recommendation systems simplify decision-making by guiding users toward relevant
 2. **Content-based** recommenders suggest items that are **similar to items the user already liked**, based on item features (descriptions, attributes, metadata).
 3. **Collaborative filtering** recommends items by analyzing **user behavior** (ratings, clicks, purchases). The idea is that users with similar preferences in the past will like similar things in the future.
 4. **Matrix factorization** is an advanced collaborative filtering technique. It reduces the large user-item interaction matrix into two smaller matrices that capture **latent factors** (hidden features). These factors represent underlying dimensions, such as genres, themes, or user preferences.
+
+
+The goal is to develop a music recommendation system using various approaches:Top 250 Tracks (Non-Personalized Approach):Recommend the 250 most popular tracks globally based on play counts.
+Example: "Top 250 most streamed tracks worldwide."
+
+1. Top 100 Tracks by Genre (Non-Personalized Approach):
+2. Identify the 100 most popular tracks in each specified genre: Rock, Rap, Jazz, Electronic, Pop, Blues, Country, Reggae, New Age.
+Example: "Top 100 Pop tracks."
+
+2. Collections (Content-Based Approach):
+Create thematic playlists based on lyrical content using the musiXmatch dataset:
+50 songs about love
+50 songs about war
+50 songs about happiness
+50 songs about loneliness
+50 songs about money
+
+
+Method: Analyze lyrics to identify themes (e.g., frequent use of “love” words assigns a song to the Love collection).
+
+
+People Similar to You Listening (Collaborative Filtering – User-Based):Recommend 10 songs per user based on the listening habits of similar users.
+Example: If User A and User B share similar music tastes and User A listens to a new song, recommend that song to User B.
+
+
+People Who Listen to This Track Also Listen to (Collaborative Filtering – Item-Based):Recommend 10 songs for each track based on co-listening patterns.
+Example: If many users who listen to Track X also listen to Track Y, recommend Track Y to others who listen to Track X.
+
