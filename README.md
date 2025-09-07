@@ -2,7 +2,7 @@
 
 This project introduces algorithms used for recommendation: non-personalized, content-based, and collaborative filtering
 
-# Introduction
+### Introduction
 
 Recommendation systems simplify decision-making by guiding users toward relevant content or products, just as people historically relied on friends, family, or popularity indicators like bestsellers. They benefit users by reducing cognitive effort and offering trusted suggestions, while also benefiting businesses through increased engagement, cross-selling, and revenue growth. This mutual value makes recommender systems essential to modern digital products.
 
@@ -38,7 +38,7 @@ The goal is to develop a music recommendation system using various approaches:
 - Example: If many users who listen to Track X also listen to Track Y, recommend Track Y to others who listen to Track X.
 
 
-**Dataset**
+### **Dataset**
 
 1. The Echo Nest Taste Profile Subset (User-Song Interactions):
 - Format: `(user_id, song_id, play_count)`
@@ -56,3 +56,24 @@ The goal is to develop a music recommendation system using various approaches:
 - Format: `(track_id, song_id, artist, title)`
 - Use: links datasets together → helps connect user plays, lyrics, and genres.
 
+**References**
+
+- [Million Song Dataset](https://labrosa.ee.columbia.edu/millionsong/)
+- [musiXmatch Dataset](https://www.musixmatch.com/)
+- [Tagtraum Genre Annotations](https://www.tagtraum.com/)
+
+
+### **Project Structure**
+Explain what files/folders exist and what they contain.
+
+```markdown
+- `src/recommenders/` — Recommender system classes:
+    - `base.py` — Base class `MusicRecommender`
+    - `non_personalized.py` — Top tracks & Top tracks by genre
+    - `content_based.py` — Keyword collections, Word2Vec, classifier
+    - `collaborative.py` — User-based & item-based CF
+- `data/` — Datasets (Echo Nest, musiXmatch, Tagtraum, track mapping)
+- `notebooks/` — Jupyter notebooks for experimentation and research
+- `scripts/` — Python scripts to run recommendations and evaluation
+- `requirements.txt` — Python dependencies
+```
