@@ -14,14 +14,15 @@ class ContentBasedRecommender(MusicRecommender):
 
     def collection_baseline(self, keyword : str, threshold: int = 1, k: int = 50):
         """Return Top-k tracks containing a keyword in lyrics (baseline approach)."""
-        mask = self.lyrics_df["bow"].apply(lambda bow: bow.get(keyword, 0) >= threshold)
+        mask = self.lyrics_df["bow"].apply(
+            lambda bow: bow.get(keyword, 0) >= threshold
+        )
         keyword_tracks = self.lyrics_df[mask]["track_id"]
 
-        # Merge with play counts
         merged = (
             keyword_tracks
-            .merge(self.interactions_df, on="song_id", how="left")
             .merge(self.tracks_df, on="track_id", how="left")
+            .merge(self.interactions_df, on="song_id", how="left")
         )
 
         track_playcounts = (
@@ -35,10 +36,36 @@ class ContentBasedRecommender(MusicRecommender):
         track_playcounts.index.name = "rank"
         return track_playcounts
     
-    def recommend_by_word2vec(self, keyword, k=50, n_similar=10):
-        # expand keyword with similar tokens & score by combined counts
-        pass
+    def collection_word2vec(self, keyword: str, model, topn: int = 10, threshold: int = 1, k: int = 50):
+        """
+        Use Word2Vec expansion of keyword.
+        model: trained gensim Word2Vec model
+        """
+        similar_words = [w for w, _ in model.wv.most_similar(keyword, topn=topn)]
+        all_keywords = [keyword] + similar_words
+
+        mask = self.lyrics_df["bow"].apply(
+            lambda bow: any(bow.get(w, 0) >= threshold for w in all_keywords)
+        )
+        keyword_tracks = self.lyrics_df[mask][["track_id"]]
     
+        merged = (
+            keyword_tracks
+            .merge(self.interactions_df, on="track_id", how="left")
+            .merge(self.tracks_df, on="track_id", how="left")
+        )
+
+        track_playcounts = (
+            merged.groupby(["track_id", "artist_name", "track_title"])["play_count"]
+            .sum()
+            .reset_index()
+            .sort_values("play_count", ascending=False)
+            .head(k)
+        )
+
+        track_playcounts.index = track_playcounts.index + 1
+        track_playcounts.index.name = "rank"
+        return track_playcounts
     
     
     def recommend_by_classifier(self, keyword, k=50,): #clf):
