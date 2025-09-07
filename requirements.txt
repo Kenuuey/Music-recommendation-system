@@ -1,0 +1,17 @@
+# Core
+numpy
+pandas
+scipy
+scikit-learn
+
+# Recommendation utils
+lightfm          # matrix factorization recommender
+implicit         # ALS-based collaborative filtering
+
+# Visualization
+matplotlib
+seaborn
+
+# Development
+jupyter
+pytest
