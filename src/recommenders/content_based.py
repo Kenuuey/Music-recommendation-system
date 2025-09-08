@@ -78,21 +78,39 @@ class ContentBasedRecommender(MusicRecommender):
         top_k_by_keyword_word2vec.index.name = "rank"
         return top_k_by_keyword_word2vec
     
-    def collection_classifier(self, keyword: str, classifier, vectorizer, k: int = 50):
+    def collection_classifier(self, keyword: str, k: int = 50, vectorizer_type="count"):
         """
         Predict tracks about a keyword using a trained classifier.
-        classifier: sklearn model (e.g., LogisticRegression)
-        vectorizer: TF-IDF or CountVectorizer fitted on lyrics
+         keyword: str, the genre/label to predict (must exist in lyrics_df['genre'] or similar)
+        k: int, number of top tracks to return
+        vectorizer_type: "count" for CountVectorizer or "tfidf" for TfidfVectorizer
         """
-        # Prepare features (BoW -> text)
+        from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+        from sklearn.linear_model import LogisticRegression
+
+        # Prepare features
         texts = self.lyrics_df["bow"].apply(
-            lambda bow: " "
-            .join(
-                [w for w, c in bow.items() 
-                 for _ in range(c)]
-                 )
-            )
-        X = vectorizer.transform(texts)
+            lambda bow: " ".join([w for w, c in bow.items() for _ in range(c)])
+        )
+
+        # Create a binary target column for the keyword
+        y = (self.lyrics_df["majority_genre"] == keyword).astype(int)  # 1 if track is the keyword genre, else 0
+
+        # Fit vectorizer
+        if vectorizer_type == "count":
+            vectorizer = CountVectorizer(max_features=5000, ngram_range=(1,2), stop_words="english")
+        elif vectorizer_type == "tfidf":
+            vectorizer = TfidfVectorizer(max_features=5000, ngram_range=(1,2), stop_words="english")
+        else:
+            raise ValueError("vectorizer_type must be 'count' or 'tfidf'")
+        
+        X = vectorizer.fit_transform(texts)
+
+        # Train classifier
+        classifier = LogisticRegression(max_iter=500, solver='liblinear', random_state=42)
+        classifier.fit(X, y)
+        
+        # Predict probabilities
         probs = classifier.predict_proba(X)[:, 1]  # probability of positive class
 
         scored = pd.DataFrame({
@@ -100,21 +118,26 @@ class ContentBasedRecommender(MusicRecommender):
             "score": probs
         })
 
+        # Merge metadata
         merged = (
-            scored.merge(self.interactions_df, on="track_id", how="left")
+            scored
             .merge(self.tracks_df, on="track_id", how="left")
+            .merge(self.interactions_df, on="song_id", how="left")
         )
-
+        
+        merged["play_count"] = merged["play_count"].fillna(0)
+        
         ranked = (
             merged.groupby(["track_id", "artist_name", "track_title"])[["play_count", "score"]]
             .sum()
             .reset_index()
         )
-
-        # Re-rank by score * popularity
+        
+        # Final ranking
         ranked["final_score"] = ranked["score"] * ranked["play_count"]
         ranked = ranked.sort_values("final_score", ascending=False).head(k)
-
+        
         ranked.index = ranked.index + 1
         ranked.index.name = "rank"
+        
         return ranked
