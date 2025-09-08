@@ -12,7 +12,7 @@ class ContentBasedRecommender(MusicRecommender):
         self.tracks_df = tracks_df
         self.lyrics_df = lyrics_df
 
-    def collection_baseline(self, keyword : str, threshold: int = 1, k: int = 50):
+    def collection_baseline(self, keyword : str, threshold: int = 5, k: int = 50):
         """Return Top-k tracks containing a keyword in lyrics (baseline approach)."""
         mask = self.lyrics_df["bow"].apply(
             lambda bow: bow.get(keyword, 0) >= threshold
@@ -27,16 +27,22 @@ class ContentBasedRecommender(MusicRecommender):
 
         track_playcounts = (
             merged.groupby(["track_id", "artist_name", "track_title"])["play_count"]
-            .sum().reset_index()
-            .sort_values("play_count", ascending=False)
-            .head(k)
+            .sum()
+            .reset_index()
         )
 
-        track_playcounts.index = track_playcounts.index + 1
-        track_playcounts.index.name = "rank"
-        return track_playcounts
+        top_k_by_keyword_baseline = (
+            track_playcounts
+            .sort_values("play_count", ascending=False)
+            .head(k)
+            .reset_index(drop=True)
+        )
+
+        top_k_by_keyword_baseline.index = top_k_by_keyword_baseline.index + 1
+        top_k_by_keyword_baseline.index.name = "rank"
+        return top_k_by_keyword_baseline
     
-    def collection_word2vec(self, keyword: str, model, topn: int = 10, threshold: int = 1, k: int = 50):
+    def collection_word2vec(self, keyword: str, model, topn: int = 10, threshold: int = 5, k: int = 50):
         """
         Use Word2Vec expansion of keyword.
         model: trained gensim Word2Vec model
@@ -51,21 +57,26 @@ class ContentBasedRecommender(MusicRecommender):
     
         merged = (
             keyword_tracks
-            .merge(self.interactions_df, on="track_id", how="left")
             .merge(self.tracks_df, on="track_id", how="left")
+            .merge(self.interactions_df, on="song_id", how="left")
         )
 
         track_playcounts = (
             merged.groupby(["track_id", "artist_name", "track_title"])["play_count"]
             .sum()
             .reset_index()
-            .sort_values("play_count", ascending=False)
-            .head(k)
         )
 
-        track_playcounts.index = track_playcounts.index + 1
-        track_playcounts.index.name = "rank"
-        return track_playcounts
+        top_k_by_keyword_word2vec = (
+            track_playcounts
+            .sort_values(by="play_count", ascending=False)
+            .head(k)
+            .reset_index(drop=True)
+        )
+
+        top_k_by_keyword_word2vec.index = top_k_by_keyword_word2vec.index + 1
+        top_k_by_keyword_word2vec.index.name = "rank"
+        return top_k_by_keyword_word2vec
     
     def collection_classifier(self, keyword: str, classifier, vectorizer, k: int = 50):
         """

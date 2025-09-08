@@ -77,3 +77,36 @@ Explain what files/folders exist and what they contain.
 - `scripts/` — Python scripts to run recommendations and evaluation
 - `requirements.txt` — Python dependencies
 ```
+
+
+### Virtual environment setup
+
+1. Create virtual environment:
+```bash
+python -m venv music-recommender_env
+# or
+conda create -n music-recommender_env python=3.10
+```
+
+2. Activate environment:
+```bash
+music-recommender_env\Scripts\activate # Windows
+source music-recommender_env/bin/activate # macOS/Linux
+# or
+conda activate music-recommender_env
+```
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+# or
+conda install numpy scipy pandas
+```
+
+4. Register Jupyter kernel:
+```bash
+python -m ipykernel install --user --name=music-recommender --display-name "Python (music-recommender)"
+```
+5. Launch Jupyter Notebook:
+```bash
+jupyter notebook
+```

@@ -20,12 +20,16 @@ class NonPersonalizedRecommender(MusicRecommender):
             track_playcounts.merge(self.tracks_df, on="song_id", how="left")
             [["artist_name", "track_title", "play_count"]]
         )
+        
         top_k.index = top_k.index + 1
         top_k.index.name = "rank"
         return top_k
 
     def top_k_by_genre(self, genre: str, k: int = 100) -> pd.DataFrame:
-        """Return Top k tracks for a given genre."""
+        """
+        Return Top k tracks for a given genre.
+        Output: DataFrame [index, artist_name, track_title, play_count]
+        """
         if genre not in self.genres_df["majority_genre"].unique():
             raise ValueError(f"Genre '{genre}' not found in dataset")
 
@@ -37,13 +41,19 @@ class NonPersonalizedRecommender(MusicRecommender):
 
         genre_df = merged[merged["majority_genre"] == genre]
 
-        track_playcounts_genre = (
+        track_playcounts_by_genre = (
             genre_df.groupby(["track_id", "artist_name", "track_title"])["play_count"]
-            .sum().reset_index()
-            .sort_values("play_count", ascending=False)
-            .head(k)
+            .sum()
+            .reset_index()
         )
 
-        track_playcounts_genre.index = track_playcounts_genre.index + 1
-        track_playcounts_genre.index.name = "rank"
-        return track_playcounts_genre
+        top_k_by_genre = (
+            track_playcounts_by_genre
+            .sort_values("play_count", ascending=False)
+            .head(k)
+            .reset_index(drop=True)
+        )
+
+        top_k_by_genre.index = top_k_by_genre.index + 1
+        top_k_by_genre.index.name = "rank"
+        return top_k_by_genre
