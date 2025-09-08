@@ -1,17 +1,6 @@
-# Core
-numpy
+numpy==1.26.4 
+scipy==1.10.1 
+gensim==4.3.2 
 pandas
-scipy
-scikit-learn
-
-# Recommendation utils
-lightfm          # matrix factorization recommender
-implicit         # ALS-based collaborative filtering
-
-# Visualization
-matplotlib
-seaborn
-
-# Development
-jupyter
-pytest
+notebook
+ipykernel
