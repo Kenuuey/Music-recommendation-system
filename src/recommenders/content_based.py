@@ -47,6 +47,9 @@ class ContentBasedRecommender(MusicRecommender):
         Use Word2Vec expansion of keyword.
         model: trained gensim Word2Vec model
         """
+        # if keyword not in model.wv.vocab:
+        #     raise ValueError(f"Keyword {keyword} not in vocabulary")
+        
         similar_words = [w for w, _ in model.wv.most_similar(keyword, topn=topn)]
         all_keywords = [keyword] + similar_words
 
@@ -81,7 +84,7 @@ class ContentBasedRecommender(MusicRecommender):
     def collection_classifier(self, keyword: str, k: int = 50, vectorizer_type="count"):
         """
         Predict tracks about a keyword using a trained classifier.
-         keyword: str, the genre/label to predict (must exist in lyrics_df['genre'] or similar)
+        keyword: str, the genre/label to predict (must exist in lyrics_df['genre'] or similar)
         k: int, number of top tracks to return
         vectorizer_type: "count" for CountVectorizer or "tfidf" for TfidfVectorizer
         """
@@ -98,9 +101,13 @@ class ContentBasedRecommender(MusicRecommender):
 
         # Fit vectorizer
         if vectorizer_type == "count":
-            vectorizer = CountVectorizer(max_features=5000, ngram_range=(1,2), stop_words="english")
+            vectorizer = CountVectorizer(
+                max_features=5000, ngram_range=(1,2), stop_words="english"
+            )
         elif vectorizer_type == "tfidf":
-            vectorizer = TfidfVectorizer(max_features=5000, ngram_range=(1,2), stop_words="english")
+            vectorizer = TfidfVectorizer(
+                max_features=5000, ngram_range=(1,2), stop_words="english"
+            )
         else:
             raise ValueError("vectorizer_type must be 'count' or 'tfidf'")
         
