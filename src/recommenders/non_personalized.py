@@ -1,5 +1,4 @@
 from src.recommenders.base import MusicRecommender
-import pandas as pd
 
 class NonPersonalizedRecommender(MusicRecommender):
     def __init__(self, interactions_df: pd.DataFrame, tracks_df: pd.DataFrame, genres_df: pd.DataFrame):
