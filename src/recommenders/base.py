@@ -1,13 +1,21 @@
+# src/recommenders/base.py
+from abc import ABC, abstractmethod
 import pandas as pd
-import numpy as np
-from sklearn.feature_extraction import DictVectorizer
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import cross_val_predict
-from sklearn.preprocessing import MinMaxScaler
 
-class MusicRecommender:
+class MusicRecommender(ABC):
+    """
+    Base abstract class for all recommenders.
+    All recommenders should inherit from this.
+    """
+
+    @abstractmethod
     def fit(self, *args, **kwargs):
         raise NotImplementedError
 
-    def recommend(self, *args, **kwargs):
+    @abstractmethod
+    def recommend_for_user(self, user_id, k=10):
+        raise NotImplementedError
+
+    @abstractmethod
+    def precision_recall_at_k(self, k=10, users=None):
         raise NotImplementedError
