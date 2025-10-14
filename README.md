@@ -69,26 +69,26 @@ Explain what files/folders exist and what they contain.
 ```markdown
 music-recommender/
 |
-├── data/                      # Datasets (Echo Nest, musiXmatch, Tagtraum, track mapping) dataset files (untracked by Git)
-│   ├── raw/                   # Original datasets (Million Songs etc.)
-│   ├── processed/             # Cleaned / merged versions
-│   └── README.md              # Notes on data source and preprocessing
+├── data/
+│   ├── raw/
+│   ├── processed/
+|   ├── samples/
+│   └── README.md
 │
-├── notebooks/ # Jupyter notebooks
+├── notebooks/
 │   ├── 01_research.ipynb
 │
-├── src/                       # Core implementation (used in final script)
+├── src/
 │   ├── __init__.py
 │   ├── base.py                # Abstract Base class (fit(), recommend())
 │   ├── non_personalized.py    # Top tracks & Top tracks by genre
 │   ├── content_based.py       # Keyword collections, Word2Vec, classifier
 │   ├── collaborative.py       # User-based & Item-based filtering
-│   └── utils.py               # Common helpers: split, metrics (p@k), I/O
+│   └── utils.py
 │
 ├── scripts/ # Python scripts to run recommendations and evaluation
 │   ├── run_all.py             # CLI script: builds all recommenders, saves outputs
 │   ├── evaluate.py            # Evaluates using precision@k
-│   └── bonus_recommendations.py # Spotify-style bonus elements
 │
 ├── tests/                     # Unit tests (pytest)
 │   ├── test_non_personalized.py
@@ -106,23 +106,31 @@ music-recommender/
 
 1. Create virtual environment:
 ```bash
+# Using Python venv (recommended for lightweight setup)
 python -m venv music-recommender_env
-# or
+
+# OR using Conda (recommended if you already use Anaconda/Miniconda)
 conda create -n music-recommender_env python=3.10
 ```
 
 2. Activate environment:
 ```bash
-music-recommender_env\Scripts\activate # Windows
-source music-recommender_env/bin/activate # macOS/Linux
-# or
+# Windows (Command Prompt or PowerShell)
+music-recommender_env\Scripts\activate
+
+ # macOS/Linux
+source music-recommender_env/bin/activate
+
+# OR (if using Conda)
 conda activate music-recommender_env
 ```
 3. Install dependencies:
 ```bash
+# Using pip
 pip install -r requirements.txt
-# or
-conda install numpy scipy pandas
+
+# OR using Conda (recommended if you have environment.yml)
+conda env create -f environment.yml
 ```
 
 4. Register Jupyter kernel:
