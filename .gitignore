@@ -3,4 +3,4 @@ data/processed/*
 !data/samples/
 
 algorithm.txt
-git_push.bat
+./git_push.bat
