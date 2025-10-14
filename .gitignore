@@ -1,9 +1,4 @@
-data/
-*.csv
-*.json
-*.txt
-*.cls
-
-
-./notebooks/ipynb_checkpoints
-./git_push.bat
+# data/
+algorithm.txt
+# notebooks/ipynb_checkpoints
+git_push.bat
