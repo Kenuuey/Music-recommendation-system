@@ -70,8 +70,6 @@ Explain what files/folders exist and what they contain.
 music-recommender/
 |
 ├── data/
-│   ├── raw/
-│   ├── processed/
 |   ├── samples/
 │   └── README.md
 │
@@ -86,19 +84,13 @@ music-recommender/
 │   ├── collaborative.py       # User-based & Item-based filtering
 │   └── utils.py
 │
-├── scripts/ # Python scripts to run recommendations and evaluation
-│   ├── run_all.py             # CLI script: builds all recommenders, saves outputs
-│   ├── evaluate.py            # Evaluates using precision@k
+<!-- ├── scripts/ # Python scripts to run recommendations and evaluation -->
+<!-- │   ├── run_all.py             # CLI script: builds all recommenders, saves outputs -->
+<!-- │   ├── evaluate.py            # Evaluates using precision@k -->
 │
-├── tests/                     # Unit tests (pytest)
-│   ├── test_non_personalized.py
-│   ├── test_collaborative.py
-│   └── sample_data.csv
-│
-├── requirements.txt           # — Python dependencies
-├── environment.yml            # optional: conda version of environment
-├── README.md                  # how to run, architecture, results
-└── main.py                    # entry point (optional CLI interface)
+├── requirements.txt
+├── README.md
+└── main.py                    # entry point
 ```
 
 
