@@ -67,15 +67,38 @@ The goal is to develop a music recommendation system using various approaches:
 Explain what files/folders exist and what they contain.
 
 ```markdown
-- `src/recommenders/` — Recommender system classes:
-    - `base.py` — Base class `MusicRecommender`
-    - `non_personalized.py` — Top tracks & Top tracks by genre
-    - `content_based.py` — Keyword collections, Word2Vec, classifier
-    - `collaborative.py` — User-based & item-based CF
-- `data/` — Datasets (Echo Nest, musiXmatch, Tagtraum, track mapping)
-- `notebooks/` — Jupyter notebooks for experimentation and research
-- `scripts/` — Python scripts to run recommendations and evaluation
-- `requirements.txt` — Python dependencies
+music-recommender/
+|
+├── data/                      # Datasets (Echo Nest, musiXmatch, Tagtraum, track mapping) dataset files (untracked by Git)
+│   ├── raw/                   # Original datasets (Million Songs etc.)
+│   ├── processed/             # Cleaned / merged versions
+│   └── README.md              # Notes on data source and preprocessing
+│
+├── notebooks/ # Jupyter notebooks
+│   ├── 01_research.ipynb
+│
+├── src/                       # Core implementation (used in final script)
+│   ├── __init__.py
+│   ├── base.py                # Abstract Base class (fit(), recommend())
+│   ├── non_personalized.py    # Top tracks & Top tracks by genre
+│   ├── content_based.py       # Keyword collections, Word2Vec, classifier
+│   ├── collaborative.py       # User-based & Item-based filtering
+│   └── utils.py               # Common helpers: split, metrics (p@k), I/O
+│
+├── scripts/ # Python scripts to run recommendations and evaluation
+│   ├── run_all.py             # CLI script: builds all recommenders, saves outputs
+│   ├── evaluate.py            # Evaluates using precision@k
+│   └── bonus_recommendations.py # Spotify-style bonus elements
+│
+├── tests/                     # Unit tests (pytest)
+│   ├── test_non_personalized.py
+│   ├── test_collaborative.py
+│   └── sample_data.csv
+│
+├── requirements.txt           # — Python dependencies
+├── environment.yml            # optional: conda version of environment
+├── README.md                  # how to run, architecture, results
+└── main.py                    # entry point (optional CLI interface)
 ```
 
 
