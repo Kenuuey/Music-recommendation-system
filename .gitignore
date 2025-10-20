@@ -2,5 +2,5 @@ data/raw/*
 data/processed/*
 !data/samples/
 
-algorithm.txt
+workflow.txt
 ./git_push.bat

@@ -1,4 +1,4 @@
-from .base import MusicRecommender
+from .recommenders.base import MusicRecommender
 import pandas as pd
 
 class NonPersonalizedRecommender(MusicRecommender):

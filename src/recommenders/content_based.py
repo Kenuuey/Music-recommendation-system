@@ -1,4 +1,4 @@
-from .base import MusicRecommender
+from .recommenders.base import MusicRecommender
 import pandas as pd
 import numpy as np
 from sklearn.feature_extraction import DictVectorizer
