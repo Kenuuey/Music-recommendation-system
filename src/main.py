@@ -1,5 +1,7 @@
 # main.py
 import pandas as pd
+from gensim.models import Word2Vec
+
 from non_personalized import NonPersonalizedRecommender
 from content_based import ContentBasedRecommender
 from collaborative import CollaborativeRecommender
@@ -13,6 +15,7 @@ def load_data():
     genres = pd.read_csv("../data/samples/genres_sample.csv")
     lyrics = pd.read_csv("../data/samples/lyrics_sample.csv")
     return interactions, tracks, genres, lyrics
+
 
 # ------------------ Main interactive menu ------------------
 def main():
@@ -45,11 +48,33 @@ def main():
 
     elif choice == "2":
         recommender = ContentBasedRecommender(interactions, tracks, lyrics)
-        keyword = input("Enter a keyword (e.g., love, war, happiness): ")
-        result = recommender.baseline(keyword, k=10)
+        print("\nSelect method:")
+        print("1. Baseline keyword search")
+        print("2. Word2Vec expansion search")
+        print("3. Classifier-based ranking")
+        method_choice = input("Enter choice [1-3]: ")
+
+        keyword = input("Enter a keyword (or genre for classifier): ")
+
+        if method_choice == "1":
+            result = recommender.baseline(keyword, k=50)
+
+        elif method_choice == "2":
+            w2v_model = Word2Vec.load("../models/w2v_model.model")
+            result = recommender.word2vec(keyword, model=w2v_model, k=50)
+        # !!!
+        elif method_choice == "3":
+            label_by_genre_input = input("Label by genre? (y/n): ").lower()
+            label_by_genre = label_by_genre_input == "y"
+            
+            result = recommender.classifier(keyword, k=50, label_by_genre=label_by_genre)
+            
+            if result.empty:
+                print(f"No tracks found with classifier for '{keyword}'. Falling back to baseline search.")
+                result = recommender.baseline(keyword, k=50)
 
         print("\n🎧 Recommended tracks:")
-        print(result.head(10))
+        print(result)
 
     elif choice == "3":
         recommender = CollaborativeRecommender(interactions, tracks)
