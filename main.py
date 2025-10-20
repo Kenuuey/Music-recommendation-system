@@ -48,7 +48,7 @@ def main():
         print(result)
 
     elif choice == "2":
-        recommender = ContentBasedRecommender(interactions, tracks, lyrics)
+        recommender = ContentBasedRecommender(interactions, tracks, lyrics, genres)
         print("\nSelect method:")
         print("1. Baseline keyword search")
         print("2. Word2Vec expansion search")
@@ -63,16 +63,16 @@ def main():
         elif method_choice == "2":
             w2v_model = Word2Vec.load("models/w2v_model.model")
             result = recommender.word2vec(keyword, model=w2v_model, k=50)
-        # !!!
-        # elif method_choice == "3":
-        #     label_by_genre_input = input("Label by genre? (y/n): ").lower()
-        #     label_by_genre = label_by_genre_input == "y"
+        
+        elif method_choice == "3":
+            label_by_genre_input = input("Label by genre? (y/n): ").lower()
+            label_by_genre = label_by_genre_input == "y"
             
-        #     result = recommender.classifier(keyword, k=50, label_by_genre=label_by_genre)
+            result = recommender.classifier(keyword, k=50, label_by_genre=label_by_genre)
             
-        #     if result.empty:
-        #         print(f"No tracks found with classifier for '{keyword}'. Falling back to baseline search.")
-        #         result = recommender.baseline(keyword, k=50)
+            if result.empty:
+                print(f"No tracks found with classifier for '{keyword}'. Falling back to baseline search.")
+                result = recommender.baseline(keyword, k=50)
 
         print("\n🎧 Recommended tracks:")
         print(result)
