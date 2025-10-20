@@ -1,12 +1,12 @@
-from .recommenders.base import MusicRecommender
 import pandas as pd
 import numpy as np
+from ast import literal_eval
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_predict
 from sklearn.preprocessing import MinMaxScaler
 
-class ContentBasedRecommender(MusicRecommender):
+class ContentBasedRecommender():
     """Content-based music recommender using lyrics and optional Word2Vec expansion or classifier."""
 
     def __init__(self, interactions_df, tracks_df, lyrics_df):
@@ -19,18 +19,16 @@ class ContentBasedRecommender(MusicRecommender):
         self.tracks_df = tracks_df
         self.lyrics_df = lyrics_df
 
-    def fit(self):
-        """No training needed for baseline content-based methods."""
-        pass
 
     def baseline(self, keyword : str, threshold: int = 5, k: int = 50):
         """Return top-k tracks containing a keyword in lyrics."""
+        self.lyrics_df["bow"] = self.lyrics_df["bow"].apply(literal_eval)
         mask = self.lyrics_df["bow"].apply(lambda bow: bow.get(keyword, 0) >= threshold)
-        keyword_tracks = self.lyrics_df[mask]["track_id"]
+        keyword_tracks = self.lyrics_df[mask][["track_id"]]
 
         merged = (
             keyword_tracks
-            .merge(self.tracks_df, on="track_id", how="left")
+            .merge(self.tracks_df, on="track_id", how="left") \
             .merge(self.interactions_df, on="song_id", how="left")
         )
 

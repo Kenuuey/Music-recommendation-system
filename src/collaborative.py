@@ -1,4 +1,3 @@
-from .recommenders.base import MusicRecommender
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -7,7 +6,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import faiss
 from sklearn.preprocessing import normalize
 
-class Collaborative(MusicRecommender):
+class CollaborativeRecommender():
     """Base class for collaborative recommenders."""
     def __init__(self, interactions_df, tracks_df):
         self.interactions_df = interactions_df
@@ -21,7 +20,7 @@ class Collaborative(MusicRecommender):
             self.interactions_df, test_size=test_size, random_state=random_state
         )
 
-class UserBasedRecommender(Collaborative):
+class UserBasedRecommender(CollaborativeRecommender):
     """User-based collaborative filtering using FAISS for approximate nearest neighbors."""
     def __init__(self, interactions_df, tracks_df, top_k_neighbors=50):
         super().__init__(interactions_df, tracks_df)
@@ -135,7 +134,7 @@ class UserBasedRecommender(Collaborative):
             'recall_at_k': float(np.mean(recalls)) if recalls else 0.0
         }
 
-class ItemBasedRecommender(Collaborative):
+class ItemBasedRecommender(CollaborativeRecommender):
     """Item-based collaborative filtering using cosine similarity."""
     def __init__(self, interactions_df, tracks_df, top_k_neighbors: int = 50):
         super().__init__(interactions_df, tracks_df)

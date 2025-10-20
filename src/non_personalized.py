@@ -1,7 +1,6 @@
-from .recommenders.base import MusicRecommender
 import pandas as pd
 
-class NonPersonalizedRecommender(MusicRecommender):
+class NonPersonalizedRecommender():
     """Recommend most popular tracks overall or by genre."""
 
     def __init__(self, interactions_df: pd.DataFrame, tracks_df: pd.DataFrame, genres_df: pd.DataFrame):
@@ -17,14 +16,14 @@ class NonPersonalizedRecommender(MusicRecommender):
         """Return Top k tracks overall."""
         track_playcounts = (
             self.interactions_df.groupby("song_id")["play_count"]
-            .sum().reset_index()
-            .sort_values("play_count", ascending=False)
-            .head(k)
+            .sum()
+            .reset_index()
+            .sort_values("play_count", ascending=False)[:k]
         )
         top_k = track_playcounts.merge(self.tracks_df, on="song_id", how="left")
         top_k.index = top_k.index + 1
         top_k.index.name = "rank"
-        return top_k["artist_name", "track_title", "play_count"]
+        return top_k[["artist_name", "track_title", "play_count"]]
 
     def top_k_by_genre(self, genre: str, k: int = 100) -> pd.DataFrame:
         """
