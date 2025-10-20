@@ -79,13 +79,10 @@ music-recommender/
 │   ├── non_personalized.py
 │   ├── content_based.py
 │   ├── collaborative.py
-│   └── eval.py
-|   └── main.py
 ├── requirements.txt
 ├── README.md
 └── main.py
 ```
-
 
 ### Virtual environment setup
 
