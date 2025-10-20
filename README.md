@@ -38,7 +38,7 @@ The goal is to develop a music recommendation system using various approaches:
 - Example: If many users who listen to Track X also listen to Track Y, recommend Track Y to others who listen to Track X.
 
 
-### **Datasets**
+### Datasets
 
 1. The Echo Nest Taste Profile Subset (User-Song Interactions):
 - Format: `(user_id, song_id, play_count)`
@@ -66,7 +66,7 @@ https://drive.google.com/drive/folders/1a_xaQLhc8dS5o0cI8xXSaMwoXVhxhCW3?usp=sha
 - [Tagtraum Genre Annotations](https://www.tagtraum.com/)
 
 
-### **Project Structure**
+### Project Structure
 Explain what files/folders exist and what they contain.
 
 ```markdown
