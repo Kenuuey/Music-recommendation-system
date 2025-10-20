@@ -68,29 +68,19 @@ Explain what files/folders exist and what they contain.
 
 ```markdown
 music-recommender/
-|
-├── data/
-|   ├── samples/
-│   └── README.md
-│
+├── data_samples/
+├── models/
 ├── notebooks/
-│   ├── 01_research.ipynb
-│
 ├── src/
 │   ├── __init__.py
-│   ├── base.py                # Abstract Base class (fit(), recommend())
-│   ├── non_personalized.py    # Top tracks & Top tracks by genre
-│   ├── content_based.py       # Keyword collections, Word2Vec, classifier
-│   ├── collaborative.py       # User-based & Item-based filtering
-│   └── utils.py
-│
-<!-- ├── scripts/ # Python scripts to run recommendations and evaluation -->
-<!-- │   ├── run_all.py             # CLI script: builds all recommenders, saves outputs -->
-<!-- │   ├── evaluate.py            # Evaluates using precision@k -->
-│
+│   ├── non_personalized.py
+│   ├── content_based.py
+│   ├── collaborative.py
+│   └── eval.py
+|   └── main.py
 ├── requirements.txt
 ├── README.md
-└── main.py                    # entry point
+└── main.py
 ```
 
 

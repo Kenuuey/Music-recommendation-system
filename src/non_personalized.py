@@ -8,19 +8,16 @@ class NonPersonalizedRecommender():
         self.tracks_df = tracks_df
         self.genres_df = genres_df
 
-    def fit(self):
-        """No training needed for non-personalized recommender."""
-        pass
-
     def top_k_global(self, k: int = 250) -> pd.DataFrame:
         """Return Top k tracks overall."""
         track_playcounts = (
             self.interactions_df.groupby("song_id")["play_count"]
             .sum()
             .reset_index()
-            .sort_values("play_count", ascending=False)[:k]
         )
         top_k = track_playcounts.merge(self.tracks_df, on="song_id", how="left")
+        top_k = top_k.sort_values("play_count", ascending=False).head(k)
+        top_k = top_k.reset_index(drop=True)
         top_k.index = top_k.index + 1
         top_k.index.name = "rank"
         return top_k[["artist_name", "track_title", "play_count"]]

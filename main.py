@@ -1,19 +1,20 @@
 # main.py
 import pandas as pd
 from gensim.models import Word2Vec
-
-from non_personalized import NonPersonalizedRecommender
-from content_based import ContentBasedRecommender
-from collaborative import CollaborativeRecommender
+from src.non_personalized import NonPersonalizedRecommender
+from src.content_based import ContentBasedRecommender
+from src.collaborative import CollaborativeRecommender
+from src.collaborative import UserBasedRecommender
+from src.collaborative import ItemBasedRecommender
 
 
 # ------------------ Load data samples ------------------
 def load_data():
     """Load small sample datasets (CSV)."""
-    interactions = pd.read_csv("../data/samples/interactions_sample.csv")
-    tracks = pd.read_csv("../data/samples/tracks_sample.csv")
-    genres = pd.read_csv("../data/samples/genres_sample.csv")
-    lyrics = pd.read_csv("../data/samples/lyrics_sample.csv")
+    interactions = pd.read_csv("data_samples/interactions_sample.csv")
+    tracks = pd.read_csv("data_samples/tracks_sample.csv")
+    genres = pd.read_csv("data_samples/genres_sample.csv")
+    lyrics = pd.read_csv("data_samples/lyrics_sample.csv")
     return interactions, tracks, genres, lyrics
 
 
@@ -60,31 +61,38 @@ def main():
             result = recommender.baseline(keyword, k=50)
 
         elif method_choice == "2":
-            w2v_model = Word2Vec.load("../models/w2v_model.model")
+            w2v_model = Word2Vec.load("models/w2v_model.model")
             result = recommender.word2vec(keyword, model=w2v_model, k=50)
         # !!!
-        elif method_choice == "3":
-            label_by_genre_input = input("Label by genre? (y/n): ").lower()
-            label_by_genre = label_by_genre_input == "y"
+        # elif method_choice == "3":
+        #     label_by_genre_input = input("Label by genre? (y/n): ").lower()
+        #     label_by_genre = label_by_genre_input == "y"
             
-            result = recommender.classifier(keyword, k=50, label_by_genre=label_by_genre)
+        #     result = recommender.classifier(keyword, k=50, label_by_genre=label_by_genre)
             
-            if result.empty:
-                print(f"No tracks found with classifier for '{keyword}'. Falling back to baseline search.")
-                result = recommender.baseline(keyword, k=50)
+        #     if result.empty:
+        #         print(f"No tracks found with classifier for '{keyword}'. Falling back to baseline search.")
+        #         result = recommender.baseline(keyword, k=50)
 
         print("\n🎧 Recommended tracks:")
         print(result)
 
     elif choice == "3":
         recommender = CollaborativeRecommender(interactions, tracks)
-        print("\n1. Recommend for a user\n2. Recommend similar tracks")
+        print("\n1. Recommend for a user (User-based)")
+        print("2. Recommend similar tracks (Item-based)")
         sub_choice = input("Enter choice [1-2]: ").strip()
 
         if sub_choice == "1":
+            recommender = UserBasedRecommender(interactions, tracks)
+            recommender.train_test_split()
+            recommender.fit()
             user_id = input("Enter user_id: ")
             result = recommender.recommend_for_user(user_id, k=10)
         else:
+            recommender = ItemBasedRecommender(interactions, tracks)
+            recommender.train_test_split()
+            recommender.fit()
             track_id = input("Enter track_id: ")
             result = recommender.recommend_for_track(track_id, k=10)
 

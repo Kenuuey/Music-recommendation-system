@@ -77,56 +77,57 @@ class ContentBasedRecommender():
         top_k.index.name = "rank"
         return top_k
     
-    def classifier(self, keyword: str, k: int = 50, label_by_genre=False):
-        """Predict tracks about a keyword using a trained classifier."""
-        if label_by_genre:
-            if "majority_genre" not in self.lyrics_df.columns:
-                print("Warning: 'majority_genre' column not found. Using keyword labeling instead.")
-                label_by_genre = False
+    # !!!
+    # def classifier(self, keyword: str, k: int = 50, label_by_genre=False):
+    #     """Predict tracks about a keyword using a trained classifier."""
+    #     if label_by_genre:
+    #         if "majority_genre" not in self.lyrics_df.columns:
+    #             print("Warning: 'majority_genre' column not found. Using keyword labeling instead.")
+    #             label_by_genre = False
 
-        # Create labels
-        if label_by_genre:
-            y = (self.lyrics_df["majority_genre"] == keyword).astype(int)
-        else:
-            y = self.lyrics_df["bow"].apply(lambda bow: 1 if bow.get(keyword, 0) > 0 else 0).astype(int)
+    #     # Create labels
+    #     if label_by_genre:
+    #         y = (self.lyrics_df["majority_genre"] == keyword).astype(int)
+    #     else:
+    #         y = self.lyrics_df["bow"].apply(lambda bow: 1 if bow.get(keyword, 0) > 0 else 0).astype(int)
 
-        if y.sum() == 0:
-            print(f"No tracks contain the keyword '{keyword}'. Returning empty results.")
-            return pd.DataFrame()
+    #     if y.sum() == 0:
+    #         print(f"No tracks contain the keyword '{keyword}'. Returning empty results.")
+    #         return pd.DataFrame()
         
-        # Vectorize
-        vec = DictVectorizer(sparse=True)
-        X = vec.fit_transform(self.lyrics_df['bow'])
+    #     # Vectorize
+    #     vec = DictVectorizer(sparse=True)
+    #     X = vec.fit_transform(self.lyrics_df['bow'])
 
-        # Classifier and out-of-fold probabilities
-        clf = LogisticRegression(max_iter=1000, solver='saga', class_weight='balanced', random_state=42)
-        probs = cross_val_predict(clf, X, y, cv=5, method='predict_proba')[:, 1]
+    #     # Classifier and out-of-fold probabilities
+    #     clf = LogisticRegression(max_iter=1000, solver='saga', class_weight='balanced', random_state=42)
+    #     probs = cross_val_predict(clf, X, y, cv=5, method='predict_proba')[:, 1]
 
-        scored = pd.DataFrame({
-            "track_id": self.lyrics_df["track_id"].values,
-            "score": probs
-        })
+    #     scored = pd.DataFrame({
+    #         "track_id": self.lyrics_df["track_id"].values,
+    #         "score": probs
+    #     })
 
-        # Aggregate play counts per song_id
-        song_plays = self.interactions_df.groupby("song_id")["play_count"].sum().reset_index()
-        tracks_and_plays = self.tracks_df.merge(song_plays, on="song_id", how="left")
-        tracks_and_plays["play_count"] = tracks_and_plays["play_count"].fillna(0)
+    #     # Aggregate play counts per song_id
+    #     song_plays = self.interactions_df.groupby("song_id")["play_count"].sum().reset_index()
+    #     tracks_and_plays = self.tracks_df.merge(song_plays, on="song_id", how="left")
+    #     tracks_and_plays["play_count"] = tracks_and_plays["play_count"].fillna(0)
 
-        # Merge scored with tracks_and_plays
-        merged = scored.merge(tracks_and_plays, on="track_id", how="left")
+    #     # Merge scored with tracks_and_plays
+    #     merged = scored.merge(tracks_and_plays, on="track_id", how="left")
 
-        # Log scale plays
-        merged["play_count_log"] = np.log1p(merged["play_count"])
+    #     # Log scale plays
+    #     merged["play_count_log"] = np.log1p(merged["play_count"])
 
-        # Normalize score and play_count_log to [0,1]
-        scaler = MinMaxScaler()
-        merged[["score_norm", "plays_norm"]] = scaler.fit_transform(merged[["score", "play_count_log"]])
+    #     # Normalize score and play_count_log to [0,1]
+    #     scaler = MinMaxScaler()
+    #     merged[["score_norm", "plays_norm"]] = scaler.fit_transform(merged[["score", "play_count_log"]])
 
-        # Combine with tunable weight
-        alpha = 0.6
-        merged["final_score"] = alpha * merged["score_norm"] + (1 - alpha) * merged["plays_norm"]
+    #     # Combine with tunable weight
+    #     alpha = 0.6
+    #     merged["final_score"] = alpha * merged["score_norm"] + (1 - alpha) * merged["plays_norm"]
 
-        topk = merged.sort_values("final_score", ascending=False).head(k).reset_index(drop=True)
-        topk.index = topk.index + 1
-        topk.index.name = "rank"
-        return topk[["track_id", "artist_name", "track_title", "play_count", "score", "final_score"]]
+    #     topk = merged.sort_values("final_score", ascending=False).head(k).reset_index(drop=True)
+    #     topk.index = topk.index + 1
+    #     topk.index.name = "rank"
+    #     return topk[["track_id", "artist_name", "track_title", "play_count", "score", "final_score"]]
