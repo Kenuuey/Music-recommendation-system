@@ -1,4 +1,2 @@
-data/raw/*
-data/processed/*
-!data/samples/
+data/
 __pycache__

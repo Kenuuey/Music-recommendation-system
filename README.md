@@ -38,7 +38,7 @@ The goal is to develop a music recommendation system using various approaches:
 - Example: If many users who listen to Track X also listen to Track Y, recommend Track Y to others who listen to Track X.
 
 
-### **Dataset**
+### **Datasets**
 
 1. The Echo Nest Taste Profile Subset (User-Song Interactions):
 - Format: `(user_id, song_id, play_count)`
@@ -55,6 +55,9 @@ The goal is to develop a music recommendation system using various approaches:
 4. Mapping between track_id and song_id:
 - Format: `(track_id, song_id, artist, title)`
 - Use: links datasets together → helps connect user plays, lyrics, and genres.
+
+Datasets:
+https://drive.google.com/drive/folders/1a_xaQLhc8dS5o0cI8xXSaMwoXVhxhCW3?usp=sharing
 
 **References**
 
