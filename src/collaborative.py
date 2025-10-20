@@ -20,6 +20,70 @@ class CollaborativeRecommender():
             self.interactions_df, test_size=test_size, random_state=random_state
         )
 
+    def precision_recall_at_k(self, k: int = 10, mode: str = 'user', entities=None, sample_size: int = 1000) -> dict:
+        """
+        Fast computation of average Precision@k and Recall@k.
+
+        Parameters:
+            k (int): Number of recommendations to consider.
+            mode (str): 'user' for user-based, 'track' for track-based evaluation.
+            entities (list or None): Specific users or tracks to evaluate. If None, sample from test set.
+            sample_size (int): Max number of users/tracks to evaluate (random sampling for speed).
+
+        Returns:
+            dict: {'precision_at_k': float, 'recall_at_k': float}
+        """
+        precisions, recalls = [], []
+
+        if mode == 'user':
+            if entities is None:
+                entities = self.test_df['user_id'].unique()
+            if len(entities) > sample_size:
+                entities = np.random.choice(entities, sample_size, replace=False)
+
+            # Precompute user-item interactions in test set
+            test_user_items = self.test_df.groupby('user_id')['song_id'].apply(set).to_dict()
+
+            for user_id in entities:
+                actual_tracks = test_user_items.get(user_id, set())
+                if not actual_tracks:
+                    continue
+                recs = self.recommend_for_user(user_id, k)
+                if recs.empty:
+                    continue
+                rec_tracks = set(recs['song_id'])
+                hits = len(actual_tracks & rec_tracks)
+                precisions.append(hits / k)
+                recalls.append(hits / len(actual_tracks))
+
+        elif mode == 'track':
+            if entities is None:
+                entities = self.test_df['song_id'].unique()
+            if len(entities) > sample_size:
+                entities = np.random.choice(entities, sample_size, replace=False)
+
+            # Precompute track-user interactions in test set
+            test_track_users = self.test_df.groupby('song_id')['user_id'].apply(set).to_dict()
+
+            for track_id in entities:
+                actual_users = test_track_users.get(track_id, set())
+                if not actual_users:
+                    continue
+                recs = self.recommend_for_track(track_id, k)
+                if recs.empty:
+                    continue
+                rec_tracks = set(recs['song_id'])
+                hits = sum(len(actual_users & test_track_users.get(rec, set())) for rec in rec_tracks)
+                precisions.append(hits / k)
+                recalls.append(hits / len(actual_users))
+
+        else:
+            raise ValueError("mode must be 'user' or 'track'")
+
+        return {
+            'precision_at_k': float(np.mean(precisions)) if precisions else 0.0,
+            'recall_at_k': float(np.mean(recalls)) if recalls else 0.0
+        }
 class UserBasedRecommender(CollaborativeRecommender):
     """User-based collaborative filtering using FAISS for approximate nearest neighbors."""
     def __init__(self, interactions_df, tracks_df, top_k_neighbors=50):
@@ -49,24 +113,33 @@ class UserBasedRecommender(CollaborativeRecommender):
         # Compute latent user vectors via SVD
         from sklearn.decomposition import TruncatedSVD
         from sklearn.preprocessing import normalize
+
+        n_components = min(64, self.user_item_sparse.shape[1])
         svd = TruncatedSVD(n_components=128)
         user_latent = svd.fit_transform(self.user_item_sparse)  # shape: (num_users, 128)
-
-        # Normalize for cosine similarity (dot product = cosine)
         user_latent = normalize(user_latent.astype(np.float32))
 
-        # Build IVF index
+        # Choose FAISS index type based on dataset size
         dim = user_latent.shape[1]
-        nlist = 4096  # number of clusters
-        quantizer = faiss.IndexFlatIP(dim)
-        index = faiss.IndexIVFFlat(quantizer, dim, nlist, faiss.METRIC_INNER_PRODUCT) 
-        
-        # Train index
-        np.random.seed(42)
-        train_sample = user_latent[np.random.choice(user_latent.shape[0], size=100000, replace=False)]
-        index.train(train_sample)
-        index.add(user_latent)
-        index.nprobe = 20
+        num_users = len(self.user_ids)
+
+        if num_users < 5000:
+            # Small dataset → exact search, no clustering needed
+            index = faiss.IndexFlatIP(dim)
+            index.add(user_latent)
+        else:
+            # Large dataset → IVF index
+            nlist = min(4096, max(1, num_users // 10))  # adapt clusters to size
+            quantizer = faiss.IndexFlatIP(dim)
+            index = faiss.IndexIVFFlat(quantizer, dim, nlist, faiss.METRIC_INNER_PRODUCT)
+
+            # Train index on subset (at most all users)
+            train_sample_size = min(100000, num_users)
+            np.random.seed(42)
+            train_sample = user_latent[np.random.choice(num_users, train_sample_size, replace=False)]
+            index.train(train_sample)
+            index.add(user_latent)
+            index.nprobe = min(20, nlist)
 
         # Query all users at once
         D, I = index.search(user_latent, self.top_k_neighbors + 1)  # +1 = includes self
@@ -108,32 +181,6 @@ class UserBasedRecommender(CollaborativeRecommender):
         recs = recs.merge(self.tracks_df, on="song_id", how="left")
         recs.insert(0, "rank", range(1, len(recs) + 1))
         return recs.sort_values(by="score", ascending=False).head(k)
-
-    def precision_recall_at_k(self, k: int = 10, users=None) -> dict:
-        """Compute average Precision@k and Recall@k across users in test set."""
-        if users is None:
-            users = self.test_df['user_id'].unique()
-
-        precisions, recalls = [], []
-        for user_id in users:
-            actual_tracks = set(self.test_df[self.test_df['user_id'] == user_id]['song_id'])
-            if not actual_tracks:
-                continue
-
-            recs = self.recommend_for_user(user_id, k)
-            if recs.empty:
-                continue
-            rec_tracks = set(recs['song_id'])
-            hits = len(actual_tracks & rec_tracks)
-
-            precisions.append(hits / k)
-            recalls.append(hits / len(actual_tracks))
-
-        return {
-            'precision_at_k': float(np.mean(precisions)) if precisions else 0.0,
-            'recall_at_k': float(np.mean(recalls)) if recalls else 0.0
-        }
-
 class ItemBasedRecommender(CollaborativeRecommender):
     """Item-based collaborative filtering using cosine similarity."""
     def __init__(self, interactions_df, tracks_df, top_k_neighbors: int = 50):
@@ -179,28 +226,3 @@ class ItemBasedRecommender(CollaborativeRecommender):
         recs = recs.merge(self.tracks_df, on="song_id", how="left")
         recs.insert(0, "rank", range(1, len(recs) + 1))
         return recs.sort_values(by="score", ascending=False).head(k)
-
-    def precision_recall_at_k(self, k: int = 10, tracks=None) -> dict:
-        """Compute average Precision@k and Recall@k across tracks in test set."""
-        if tracks is None:
-            tracks = self.test_df['song_id'].unique()
-
-        precisions, recalls = [], []
-        for track_id in tracks:
-            actual_users = set(self.test_df[self.test_df['song_id'] == track_id]['user_id'])
-            if not actual_users:
-                continue
-
-            recs = self.recommend_for_track(track_id, k)
-            if recs.empty:
-                continue
-            rec_tracks = set(recs['song_id'])
-
-            hits = sum(len(actual_users & set(self.test_df[self.test_df['song_id'] == rec]['user_id'])) for rec in rec_tracks)
-            precisions.append(hits / k)
-            recalls.append(hits / len(actual_users))
-
-        return {
-            'precision_at_k': float(np.mean(precisions)) if precisions else 0.0,
-            'recall_at_k': float(np.mean(recalls)) if recalls else 0.0
-        }

@@ -29,7 +29,6 @@ def main():
     choice = input("Enter choice [1-3]: ").strip()
     interactions, tracks, genres, lyrics = load_data()
 
-
     if choice == "1":
         recommender = NonPersonalizedRecommender(interactions, tracks, genres)
         print("\n1. Top 250 tracks\n2. Top 100 by genre")
@@ -78,7 +77,6 @@ def main():
         print(result)
 
     elif choice == "3":
-        recommender = CollaborativeRecommender(interactions, tracks)
         print("\n1. Recommend for a user (User-based)")
         print("2. Recommend similar tracks (Item-based)")
         sub_choice = input("Enter choice [1-2]: ").strip()
@@ -89,15 +87,31 @@ def main():
             recommender.fit()
             user_id = input("Enter user_id: ")
             result = recommender.recommend_for_user(user_id, k=10)
-        else:
+
+            print("\n🎧 Recommended tracks:")
+            print(result.head(10))
+
+            # Evaluate Precision@k & Recall@k across all users
+            metrics = recommender.precision_recall_at_k(k=10, mode='user')
+            print(f"\nAverage Precision@10 across all users: {metrics['precision_at_k']*100:.2f}%")
+            print(f"Average Recall@10 across all users: {metrics['recall_at_k']*100:.2f}%")
+
+        elif sub_choice == "2":
             recommender = ItemBasedRecommender(interactions, tracks)
             recommender.train_test_split()
             recommender.fit()
-            track_id = input("Enter track_id: ")
+            track_id = input("Enter song_id: ")
             result = recommender.recommend_for_track(track_id, k=10)
 
-        print("\n🎧 Recommended tracks:")
-        print(result.head(10))
+            print("\n🎧 Recommended tracks:")
+            print(result.head(10))
+
+            # Evaluate Precision@k & Recall@k across all tracks
+            metrics = recommender.precision_recall_at_k(k=10, mode='track')
+            print(f"\nAverage Precision@10 across all tracks: {metrics['precision_at_k']*100:.2f}%")
+            print(f"Average Recall@10 across all tracks: {metrics['recall_at_k']*100:.2f}%")
+        else:
+            print("Invalid choice. Please enter 1 or 2.")
 
     else:
         print("Invalid choice. Please enter 1, 2, or 3.")
